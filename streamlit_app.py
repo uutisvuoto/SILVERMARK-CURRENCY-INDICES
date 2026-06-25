@@ -1,7 +1,7 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import urllib.request
 import json
-import pandas as pd
 from datetime import datetime
 
 # Sivun asetukset CAPS LOCKILLA
@@ -43,7 +43,7 @@ try:
     hopea_gramma_usd = hopea_unssi_usd / 31.1035
     smk_arvo = hopea_gramma_usd * 0.5
     
-    # Valuuttojen arvot dollareina (Paljonko 1 yksikkö on USD)
+    # Valuuttojen arvot dollareina
     usd_arvo = 1.0000
     eur_arvo = 1.0 / float(rates["EUR"])
     gbp_arvo = 1.0 / float(rates["GBP"])
@@ -83,7 +83,6 @@ try:
     with col_taulukko:
         st.markdown("### **PÖRSSIPÄÄTE / TEKSTI-TV SIVU 331**")
         
-        # Rakennetaan aito Teksti-TV ruutu HTML-muotoilulla
         html_rows = ""
         for i, v in enumerate(valuutat, start=1):
             if v["arvo"] >= 1.0000:
@@ -102,18 +101,18 @@ try:
                 
             html_rows += f"""
             <tr>
-                <td style="color: #FFFFFF;">{i:02d}</td>
+                <td style="color: #FFFFFF; font-family: monospace;">{i:02d}</td>
                 <td {väri_tyyli}>{nimi_str}</td>
-                <td align="right" style="color: #00FFFF;">{arvo_str}</td>
+                <td align="right" style="color: #00FFFF; font-family: monospace;">{arvo_str}</td>
             </tr>
             """
             
         teksti_tv_laatikko = f"""
-        <div style="background-color: #000000; padding: 15px; border: 4px solid #0000FF; font-family: 'Courier New', monospace; max-width: 420px; box-shadow: 5px 5px 0px #888888;">
+        <div style="background-color: #000000; padding: 15px; border: 4px solid #0000FF; font-family: 'Courier New', monospace; min-height: 400px;">
             <div style="color: #FFFF00; font-weight: bold; font-size: 18px; margin-bottom: 10px; border-bottom: 2px dashed #FFFF00; padding-bottom: 5px;">
                 P331  VALUUTTAKURSSIT (USD)
             </div>
-            <table cellpadding="4" cellspacing="0" style="width: 100%; font-size: 16px;">
+            <table cellpadding="4" cellspacing="0" style="width: 100%; font-size: 16px; font-family: monospace;">
                 <tr style="color: #FFFF00; font-weight: bold;">
                     <td align="left" style="width: 50px;">SIJA</td>
                     <td align="left">TUNNUS</td>
@@ -126,8 +125,8 @@ try:
             </div>
         </div>
         """
-        # PÄIVITETTY: Käytetään varmaa markdown-HTML-komentoa st.html sijasta
-        st.markdown(teksti_tv_laatikko, unsafe_allow_html=True)
+        # Komponentti upottaa HTML:n eristetysti, jolloin se toimii varmasti
+        components.html(teksti_tv_laatikko, height=450)
 
     with col_kaavio:
         st.markdown("### **PÖRSSIPÄÄTE / TEKSTI-TV SIVU 332**")
@@ -141,29 +140,29 @@ try:
             palikat = "█" * palkin_pituus
             
             if v["lyhenne"] == "SMK":
-                palkki_vari = "#FFFF00" # Keltainen
-                tunnus_str = f"<b style='background-color: #222222;'>*{v['lyhenne']}*</b>"
+                palkki_vari = "#FFFF00"
+                tunnus_str = f"<b>*{v['lyhenne']}*</b>"
             elif v["arvo"] >= 1.0000:
-                palkki_vari = "#00FF00" # Vihreä
+                palkki_vari = "#00FF00"
                 tunnus_str = v["lyhenne"]
             else:
-                palkki_vari = "#00FFFF" # Syaani
+                palkki_vari = "#00FFFF"
                 tunnus_str = v["lyhenne"]
                 
             chart_rows += f"""
             <tr>
-                <td style="color: #FFFFFF; width: 60px;">{tunnus_str}</td>
-                <td style="color: {palkki_vari}; font-size: 16px; letter-spacing: 1px;">{palikat}</td>
-                <td align="right" style="color: #FFFF00; width: 70px;">{v['arvo']:.2f}</td>
+                <td style="color: #FFFFFF; width: 60px; font-family: monospace;">{tunnus_str}</td>
+                <td style="color: {palkki_vari}; font-size: 16px; letter-spacing: 1px; font-family: monospace;">{palikat}</td>
+                <td align="right" style="color: #FFFF00; width: 70px; font-family: monospace;">{v['arvo']:.2f}</td>
             </tr>
             """
             
         teksti_tv_kaavio = f"""
-        <div style="background-color: #000000; padding: 15px; border: 4px solid #0000FF; font-family: 'Courier New', monospace; max-width: 420px; box-shadow: 5px 5px 0px #888888;">
+        <div style="background-color: #000000; padding: 15px; border: 4px solid #0000FF; font-family: 'Courier New', monospace; min-height: 400px;">
             <div style="color: #FFFF00; font-weight: bold; font-size: 18px; margin-bottom: 10px; border-bottom: 2px dashed #FFFF00; padding-bottom: 5px;">
                 P332  DIAGRAMMI-VERTAILU
             </div>
-            <table cellpadding="4" cellspacing="0" style="width: 100%; font-size: 15px;">
+            <table cellpadding="4" cellspacing="0" style="width: 100%; font-size: 15px; font-family: monospace;">
                 <tr style="color: #FFFF00; font-weight: bold;">
                     <td align="left">TUNNUS</td>
                     <td align="left">GRAAFI (USD-SUHDE)</td>
@@ -176,8 +175,7 @@ try:
             </div>
         </div>
         """
-        # PÄIVITETTY: Käytetään varmaa markdown-HTML-komentoa st.html sijasta
-        st.markdown(teksti_tv_kaavio, unsafe_allow_html=True)
+        components.html(teksti_tv_kaavio, height=450)
 
     st.write("---")
 
