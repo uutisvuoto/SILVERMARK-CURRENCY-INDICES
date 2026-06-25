@@ -2,10 +2,9 @@ import streamlit as st
 import urllib.request
 import json
 import pandas as pd
-import plotly.graph_objects as go
 from datetime import datetime
 
-# Sivun asetukset - PÄIVITETTY SIVUN NIMI CAPS LOCKILLA
+# Sivun asetukset CAPS LOCKILLA
 st.set_page_config(page_title="HOPEAAN SIDOTUN SUOMEN MARKAN KURSSI-INDEKSI", layout="wide")
 
 # Haetaan kellonaika
@@ -88,9 +87,9 @@ try:
         html_rows = ""
         for i, v in enumerate(valuutat, start=1):
             if v["arvo"] >= 1.0000:
-                vari_koodi = "#00FF00" # Kirkas vihreä
+                vari_koodi = "#00FF00" # Kirkas Teksti-TV vihreä
             else:
-                vari_koodi = "#FF0000" # Kirkas punainen
+                vari_koodi = "#FF0000" # Kirkas Teksti-TV punainen
 
             if v["lyhenne"] == "SMK":
                 väri_tyyli = f'style="color: {vari_koodi}; font-weight: bold; background-color: #222222;"'
@@ -115,74 +114,3 @@ try:
                 P331  VALUUTTAKURSSIT (USD)
             </div>
             <table cellpadding="4" cellspacing="0" style="width: 100%; font-size: 16px;">
-                <tr style="color: #FFFF00; font-weight: bold;">
-                    <td align="left" style="width: 50px;">SIJA</td>
-                    <td align="left">TUNNUS</td>
-                    <td align="right">USD-ARVO</td>
-                </tr>
-                {html_rows}
-            </table>
-            <div style="color: #00FFFF; font-size: 12px; margin-top: 15px; text-align: center; border-top: 1px solid #333333; padding-top: 5px;">
-                SUOMEN VALUUTTAREKISTERI LASKURI
-            </div>
-        </div>
-        """
-        st.html(teksti_tv_laatikko)
-
-    with col_kaavio:
-        st.markdown("### **GRAPH-VERTAILU (3D-RETROTYYLI)**")
-        
-        # Luodaan uniikit värit kullekin valuuttapalkille (retro-pörssivärit)
-        retrovärit = [
-            '#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33F3', 
-            '#33FFF0', '#FFA500', '#8A2BE2', '#00FF00', '#FF0000',
-            '#00FFFF', '#FFFF00', '#FF00FF'
-        ]
-        
-        X_tunnukset = [v["lyhenne"] for v in valuutat]
-        Y_arvot = [v["arvo"] for v in valuutat]
-        
-        # Rakennetaan tyylikäs 3D-efektillä varustettu sylinteri/palkisto Plotlylla
-        fig = go.Figure(data=[go.Bar(
-            x=X_tunnukset,
-            y=Y_arvot,
-            marker_color=retrovärit[:len(X_tunnukset)], # Annetaan kaikille eri väri
-            marker_line_color='#000000',
-            marker_line_width=1.5,
-            opacity=0.85
-        )])
-        
-        # Tehdään muotoilusta retro: tumma tausta, paksut viivat ja varjostukset
-        fig.update_layout(
-            plot_bgcolor='#111111',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(family="Courier New, monospace", size=12, color="#000000"),
-            margin=dict(l=20, r=20, t=20, b=20),
-            height=420,
-            barmode='group',
-            bargap=0.15
-        )
-        
-        # Lisätään 3D-efektiä matkiva varjostus ("pattern") palkkeihin
-        fig.update_traces(marker_pattern_shape="/") 
-        
-        st.plotly_chart(fig, use_container_width=True)
-
-    st.write("---")
-
-    # --- VALUUTTAMUUNNIN OSION ---
-    st.markdown("### **VALUUTTAMUUNNIN (SMK -> EUR)**")
-    st.write("Laske haluamasi Uusien markkojen määrä euroina voimassa olevan kurssin mukaan:")
-    
-    markat = st.number_input("Syötä SMK-määrä:", min_value=1, value=100, step=1)
-    smk_eur_suhde = smk_arvo / eur_arvo
-    euroina = markat * smk_eur_suhde
-    
-    st.code(f">>> {markat} SMK on tällä hetkellä arvoltaan {euroina:.2f} EUR", language="text")
-
-    st.write("---")
-    st.write("[Ohjeita sivulla liikkujille] [Sisällysluettelo] [Tekstiversio]")
-    st.caption("Powered by Silicon Graphics Computer Systems & Streamlit Engine. All rights reserved 2026.")
-
-except Exception as e:
-    st.error(f"JÄRJESTELMÄVIRHE: Tietokoneeseen ei saatu yhteyttä. Syy: {e}")
