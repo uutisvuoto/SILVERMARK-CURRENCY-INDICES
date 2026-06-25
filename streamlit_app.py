@@ -21,23 +21,16 @@ with st.sidebar:
     st.markdown("---")
     st.write("Webmaster: admin@smk.index")
 
-# --- RETROHENKINEN SIVUSTON LOGO (HTML/ASCII-TYYLI) ---
-logo_html = """
-<div style="background-color: #000000; padding: 15px; border: 3px double #00FF00; font-family: 'Courier New', monospace; text-align: center; margin-bottom: 20px; box-shadow: 4px 4px 0px #333333;">
-    <pre style="color: #FFFF00; font-weight: bold; font-size: 14px; margin: 0; line-height: 1.2; background: transparent; border: none;">
- ██████╗ ███╗   ███╗ ██╗  ██╗   
-██╔════╝ ████╗ ████║ ██║ ██╔╝    
-╚█████╗  ██╔████╔██║ █████╔╝    
- ╚═══██╗ ██║╚██╔╝██║ ██╔═██╗     
-██████╔╝ ██║ ╚═╝ ██║ ██║  ██╗    
-╚═════╝  ╚═╝     ╚═╝ ╚═╝  ╚═╝    
-    </pre>
-    <div style="color: #00FFFF; font-size: 12px; margin-top: 8px; letter-spacing: 2px; font-weight: bold;">
-        * SUOMEN VALUUTTAREKISTERI PÖRSSIPÄÄTE SYSTEM v3.3 *
-    </div>
-</div>
-"""
-st.components.v1.html(logo_html, height=140)
+# --- RETRO-LOGO (KORJATTU JA VARMA) ---
+st.code("""
+███████╗███╗   ███╗██╗  ██╗
+██╔════╝████╗ ████║██║ ██╔╝
+███████╗██╔████╔██║█████╔╝ 
+╚════██║██║╚██╔╝██║██╔═██╗ 
+███████║██║ ╚═╝ ██║██║  ██╗
+╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝
+  * SUOMEN VALUUTTAREKISTERI PÖRSSIPÄÄTE v3.4 *
+""", language="text")
 
 # --- PÄÄSIVUN OTSIKKO ---
 st.markdown("# **HOPEAAN SIDOTUN SUOMEN MARKAN KURSSI-INDEKSI**")
@@ -45,7 +38,7 @@ st.write(f"Suomen Valuuttarekisteri — Sivu perustettu 2026 — Päivitetty {ny
 st.write("---")
 
 try:
-    # 1. Haetaan reaaliaikaiset valuuttakurssit ja hopea (XAG) samasta rajapinnasta
+    # Haetaan reaaliaikaiset valuuttakurssit ja hopea (XAG)
     url_v = "https://open.er-api.com/v6/latest/USD"
     req_v = urllib.request.Request(url_v, headers={'User-Agent': 'Mozilla/5.0'})
     vastaus_v = urllib.request.urlopen(req_v)
@@ -75,10 +68,5 @@ try:
     aud_arvo = 1.0 / float(rates["AUD"])
     inr_arvo = 1.0 / float(rates["INR"])
     
-    # Luodaan lista rankingia varten
-    valuutat = [
-        {"lyhenne": "SMK", "arvo": smk_arvo},
-        {"lyhenne": "GBP", "arvo": gbp_arvo},
-        {"lyhenne": "EUR", "arvo": eur_arvo},
-        {"lyhenne": "USD", "arvo": usd_arvo},
-        {"lyhenne": "CNY", "arvo": cny_ar
+    # Luodaan lista rankingia varten (kaikki sulkeet varmasti kiinni)
+    valuutat =
