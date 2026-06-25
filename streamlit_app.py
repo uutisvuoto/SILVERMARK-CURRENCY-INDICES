@@ -4,7 +4,7 @@ import json
 import pandas as pd
 from datetime import datetime
 
-# Sivun asetukset - SIVUN NIMI MUUTETTU CAPS LOCKILLA
+# Sivun asetukset CAPS LOCKILLA
 st.set_page_config(page_title="HOPEAAN SIDOTUN SUOMEN MARKAN KURSSI-INDEKSI", layout="wide")
 
 # Haetaan kellonaika
@@ -83,16 +83,14 @@ try:
     with col_taulukko:
         st.markdown("### **PÖRSSIPÄÄTE / TEKSTI-TV SIVU 331**")
         
-        # Rakennetaan aito Teksti-TV-ruutu HTML-muotoilulla
+        # Rakennetaan aito Teksti-TV ruutu HTML-muotoilulla
         html_rows = ""
         for i, v in enumerate(valuutat, start=1):
-            # Teksti-TV värit: Vihreä tai Punainen neonväri suhteessa dollariin
             if v["arvo"] >= 1.0000:
-                vari_koodi = "#00FF00" # Kirkas Teksti-TV-vihreä
+                vari_koodi = "#00FF00" # Vihreä
             else:
-                vari_koodi = "#FF0000" # Kirkas Teksti-TV-punainen
+                vari_koodi = "#FF0000" # Punainen
 
-            # Jos kyseessä on SMK, pidetään se korostettuna (bold) ja ympäröidään asteriskeilla
             if v["lyhenne"] == "SMK":
                 väri_tyyli = f'style="color: {vari_koodi}; font-weight: bold; background-color: #222222;"'
                 nimi_str = f"*{v['lyhenne']}*"
@@ -131,31 +129,8 @@ try:
         st.html(teksti_tv_laatikko)
 
     with col_kaavio:
-        st.markdown("### **GRAPH-VERTAILU (INDEKSI %)**")
+        st.markdown("### **PÖRSSIPÄÄTE / TEKSTI-TV SIVU 332**")
         
-        # Luodaan kevyt ja varma data kaaviolle ilman ulkoisia kirjastoja (prosentteina)
-        chart_data = pd.DataFrame(
-            [v["arvo"] * 100 for v in valuutat],
-            index=[v["lyhenne"] for v in valuutat],
-            columns=["Suhde dollariin (%)"]
-        )
-        st.bar_chart(chart_data)
-
-    st.write("---")
-
-    # --- VALUUTTAMUUNNIN OSION ---
-    st.markdown("### **VALUUTTAMUUNNIN (SMK -> EUR)**")
-    st.write("Laske haluamasi Uusien markkojen määrä euroina voimassa olevan kurssin mukaan:")
-    
-    markat = st.number_input("Syötä SMK-määrä:", min_value=1, value=100, step=1)
-    smk_eur_suhde = smk_arvo / eur_arvo
-    euroina = markat * smk_eur_suhde
-    
-    st.code(f">>> {markat} SMK on tällä hetkellä arvoltaan {euroina:.2f} EUR", language="text")
-
-    st.write("---")
-    st.write("[Ohjeita sivulla liikkujille] [Sisällysluettelo] [Tekstiversio]")
-    st.caption("Powered by Silicon Graphics Computer Systems & Streamlit Engine. All rights reserved 2026.")
-
-except Exception as e:
-    st.error(f"JÄRJESTELMÄVIRHE: Tietokoneeseen ei saatu yhteyttä. Syy: {e}")
+        # Rakennetaan dynaaminen ASCII/ANSI-pylväsdiagrammi Teksti-TV tyyliin
+        # Lasketaan suhteellinen palkin pituus (max 15 merkkiä kalleimmalle)
+        kallein_arvo = max([v["arvo"] for
