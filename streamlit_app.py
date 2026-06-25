@@ -1,4 +1,3 @@
-ython
 import streamlit as st
 import urllib.request
 import json
