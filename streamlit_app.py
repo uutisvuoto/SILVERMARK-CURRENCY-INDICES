@@ -2,10 +2,11 @@ import streamlit as st
 import urllib.request
 import json
 import pandas as pd
+import plotly.graph_objects as go
 from datetime import datetime
 
-# Sivun asetukset
-st.set_page_config(page_title="HOPEAAN SIDOTUN SUOMEN MARKAN KURSSIINDEKSI", layout="wide")
+# Sivun asetukset - PÄIVITETTY SIVUN NIMI CAPS LOCKILLA
+st.set_page_config(page_title="HOPEAAN SIDOTUN SUOMEN MARKAN KURSSI-INDEKSI", layout="wide")
 
 # Haetaan kellonaika
 nykyinen_aika = datetime.now().strftime("%H:%M:%S")
@@ -13,7 +14,7 @@ nykyinen_aika = datetime.now().strftime("%H:%M:%S")
 # --- VASEMMAN REUNAN NAVIGAATIOPALKKI ---
 with st.sidebar:
     st.markdown("### **VALIKKO**")
-    st.markdown("[INDEKSI-ETUSIVU](#hopeaan-sidotun-suomen-markan-kurssiindeksi)")
+    st.markdown("[INDEKSI-ETUSIVU](#hopeaan-sidotun-suomen-markan-kurssi-indeksi)")
     st.markdown("---")
     st.markdown("**RAHOITUSLINKIT:**")
     st.markdown("[Reuters Financial Systems](https://www.reuters.com)")
@@ -21,31 +22,29 @@ with st.sidebar:
     st.markdown("---")
     st.write("Webmaster: admin@smk.index")
 
-# --- PÄÄSIVUN OTSIKKO ---
-st.markdown("# **HOPEAAN SIDOTUN SUOMEN MARKAN KURSSIINDEKSI**")
+# --- PÄÄSIVUN OTSIKKO CAPS LOCKILLA ---
+st.markdown("# **HOPEAAN SIDOTUN SUOMEN MARKAN KURSSI-INDEKSI**")
 st.write(f"Suomen Valuuttarekisteri — Sivu perustettu 2026 — Päivitetty {nykyinen_aika}")
 st.write("---")
 
 try:
-    # Haetaan reaaliaikaiset valuuttakurssit ja hyödykkeet samasta varmasta rajapinnasta
+    # 1. Haetaan reaaliaikaiset valuuttakurssit ja hopea (XAG)
     url_v = "https://open.er-api.com/v6/latest/USD"
     req_v = urllib.request.Request(url_v, headers={'User-Agent': 'Mozilla/5.0'})
     vastaus_v = urllib.request.urlopen(req_v)
     data_v = json.loads(vastaus_v.read())
     rates = data_v["rates"]
     
-    # Haetaan hopean (XAG) unssihinta suoraan suhteessa dollariin
-    # 1 unssi USD = 1 / rates["XAG"]
     if "XAG" in rates and rates["XAG"] > 0:
         hopea_unssi_usd = 1.0 / float(rates["XAG"])
     else:
-        hopea_unssi_usd = 30.75 # Luotettava varajärjestelmä
+        hopea_unssi_usd = 30.75
 
-    # Lasketaan 1 SMK arvo (1 SMK = 0.5g hopeaa, unssi = 31.1035g)
+    # Lasketaan 1 SMK arvo (1 SMK = 0.5g hopeaa)
     hopea_gramma_usd = hopea_unssi_usd / 31.1035
     smk_arvo = hopea_gramma_usd * 0.5
     
-    # Valuuttojen arvot dollareina (Paljonko 1 yksikkö on USD)
+    # Valuuttojen arvot dollareina
     usd_arvo = 1.0000
     eur_arvo = 1.0 / float(rates["EUR"])
     gbp_arvo = 1.0 / float(rates["GBP"])
@@ -59,7 +58,7 @@ try:
     aud_arvo = 1.0 / float(rates["AUD"])
     inr_arvo = 1.0 / float(rates["INR"])
     
-    # Luodaan laajennettu lista rankingia varten
+    # Luodaan lista rankingia varten
     valuutat = [
         {"lyhenne": "SMK", "arvo": smk_arvo, "bold": True},
         {"lyhenne": "GBP", "arvo": gbp_arvo, "bold": False},
@@ -83,58 +82,91 @@ try:
     col_taulukko, col_kaavio = st.columns([1, 1])
 
     with col_taulukko:
-        st.markdown("### **VIRALLISET NOTEERAUKSET (USD)**")
+        st.markdown("### **PÖRSSIPÄÄTE / TEKSTI-TV SIVU 331**")
         
+        # Rakennetaan aito Teksti-TV ruutu
         html_rows = ""
         for i, v in enumerate(valuutat, start=1):
-            # Määritetään väri dynaamisesti suhteessa dollariin
             if v["arvo"] >= 1.0000:
-                vari_koodi = "#008000" # Vihreä
+                vari_koodi = "#00FF00" # Kirkas vihreä
             else:
-                vari_koodi = "#FF0000" # Punainen
+                vari_koodi = "#FF0000" # Kirkas punainen
 
-            # Muotoillaan SMK ja muut rivit erikseen
             if v["lyhenne"] == "SMK":
-                väri_tyyli = f'style="color: {vari_koodi}; font-weight: bold;"'
-                nimi_str = f"<b>{v['lyhenne']}</b>"
-                arvo_str = f"<b>{v['arvo']:.4f} USD</b>"
-                rivi_bg = 'style="background-color: #f5f5f5;"'
+                väri_tyyli = f'style="color: {vari_koodi}; font-weight: bold; background-color: #222222;"'
+                nimi_str = f"*{v['lyhenne']}*"
+                arvo_str = f"{v['arvo']:.4f}"
             else:
                 väri_tyyli = f'style="color: {vari_koodi};"'
                 nimi_str = v["lyhenne"]
-                arvo_str = f"{v['arvo']:.4f} USD"
-                rivi_bg = ""
+                arvo_str = f"{v['arvo']:.4f}"
                 
             html_rows += f"""
-            <tr {rivi_bg}>
-                <td>{i}.</td>
+            <tr>
+                <td style="color: #FFFFFF;">{i:02d}</td>
                 <td {väri_tyyli}>{nimi_str}</td>
-                <td align="right" {väri_tyyli}>{arvo_str}</td>
+                <td align="right" style="color: #00FFFF;">{arvo_str}</td>
             </tr>
             """
             
-        koko_taulukko = f"""
-        <table border="3" cellpadding="6" cellspacing="0" style="font-family: monospace; width: 100%; max-width: 450px; border-color: #808080;">
-            <tr bgcolor="#d3d3d3">
-                <th align="left" style="width: 50px;">SIJA</th>
-                <th align="left">TUNNUS</th>
-                <th align="right">ARVO (USD)</th>
-            </tr>
-            {html_rows}
-        </table>
+        teksti_tv_laatikko = f"""
+        <div style="background-color: #000000; padding: 15px; border: 4px solid #0000FF; font-family: 'Courier New', monospace; max-width: 420px; box-shadow: 5px 5px 0px #888888;">
+            <div style="color: #FFFF00; font-weight: bold; font-size: 18px; margin-bottom: 10px; border-bottom: 2px dashed #FFFF00; padding-bottom: 5px;">
+                P331  VALUUTTAKURSSIT (USD)
+            </div>
+            <table cellpadding="4" cellspacing="0" style="width: 100%; font-size: 16px;">
+                <tr style="color: #FFFF00; font-weight: bold;">
+                    <td align="left" style="width: 50px;">SIJA</td>
+                    <td align="left">TUNNUS</td>
+                    <td align="right">USD-ARVO</td>
+                </tr>
+                {html_rows}
+            </table>
+            <div style="color: #00FFFF; font-size: 12px; margin-top: 15px; text-align: center; border-top: 1px solid #333333; padding-top: 5px;">
+                SUOMEN VALUUTTAREKISTERI LASKURI
+            </div>
+        </div>
         """
-        st.html(koko_taulukko)
+        st.html(teksti_tv_laatikko)
 
     with col_kaavio:
-        st.markdown("### **VALUUTTOJEN ARVOVERTAILU (USD)**")
+        st.markdown("### **GRAPH-VERTAILU (3D-RETROTYYLI)**")
         
-        # Valmistellaan data dynaamista pylvästä varten
-        chart_data = pd.DataFrame(
-            [v["arvo"] for v in valuutat],
-            index=[v["lyhenne"] for v in valuutat],
-            columns=["USD-Arvo"]
+        # Luodaan uniikit värit kullekin valuuttapalkille (retro-pörssivärit)
+        retrovärit = [
+            '#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33F3', 
+            '#33FFF0', '#FFA500', '#8A2BE2', '#00FF00', '#FF0000',
+            '#00FFFF', '#FFFF00', '#FF00FF'
+        ]
+        
+        X_tunnukset = [v["lyhenne"] for v in valuutat]
+        Y_arvot = [v["arvo"] for v in valuutat]
+        
+        # Rakennetaan tyylikäs 3D-efektillä varustettu sylinteri/palkisto Plotlylla
+        fig = go.Figure(data=[go.Bar(
+            x=X_tunnukset,
+            y=Y_arvot,
+            marker_color=retrovärit[:len(X_tunnukset)], # Annetaan kaikille eri väri
+            marker_line_color='#000000',
+            marker_line_width=1.5,
+            opacity=0.85
+        )])
+        
+        # Tehdään muotoilusta retro: tumma tausta, paksut viivat ja varjostukset
+        fig.update_layout(
+            plot_bgcolor='#111111',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(family="Courier New, monospace", size=12, color="#000000"),
+            margin=dict(l=20, r=20, t=20, b=20),
+            height=420,
+            barmode='group',
+            bargap=0.15
         )
-        st.bar_chart(chart_data)
+        
+        # Lisätään 3D-efektiä matkiva varjostus ("pattern") palkkeihin
+        fig.update_traces(marker_pattern_shape="/") 
+        
+        st.plotly_chart(fig, use_container_width=True)
 
     st.write("---")
 
