@@ -1,28 +1,33 @@
 import streamlit as st
 import urllib.request
 import json
+from datetime import datetime
 
-# Asetetaan sivun perustiedot
-st.set_page_config(page_title="SMK Valuuttalasku- ja kurssi-indeksi", layout="wide")
+# 5. Sivun nimi muutettu halutuksi
+st.set_page_config(page_title="HOPEAAN SIDOTUN SUOMEN MARKAN KURSSIINDEKSI", layout="wide")
 
-# --- VASEMMAN REUNAN NAVIGAATIOPALKKI (90-LUVUN TYYLIIN) ---
+# Haetaan tämän hetkinen kellonaika automaattisesti (4. kohta)
+nykyinen_aika = datetime.now().strftime("%H:%M:%S")
+
+# --- VASEMMAN REUNAN NAVIGAATIOPALKKI (90-LUVUN TYYLIIN ILMAN YLE-VIITTEITÄ) ---
 with st.sidebar:
     st.markdown("### **VALIKKO**")
-    st.markdown("[SMK-ETUSIVU](#uuden-markan-smk-virallinen-kurssi-indeksi)")
-    st.markdown("[VALUUTTAKURSSIT](#viralliset-kurssinoteeraukset)")
+    st.markdown("[INDEKSI-ETUSIVU](#hopeaan-sidotun-suomen-markan-kurssiindeksi)")
+    st.markdown("[VALUUTTAKURSSIT](#viralliset-kurssinoteeraukset-usd)")
     st.markdown("[VALUUTTAMUUNNIN](#valuuttamuunnin)")
     st.markdown("---")
-    st.markdown("**LINKKEJÄ MAAILMALLE:**")
+    st.markdown("**RAHOITUSLINKIT:**")
     st.markdown("[Reuters Financial Systems](https://www.reuters.com)")
-    st.markdown("[Yleisradio (Teksti-TV)](https://yle.fi/tekstitv)")
+    st.markdown("[Bloomberg Markets](https://www.bloomberg.com)")
     st.markdown("---")
     st.write("Yhteydenotot: webmaster@smk.index")
 
 # --- PÄÄSIVUN SISÄLTÖ ---
 
-# Otsikko isolla fontilla ilman muotoiluja, kuten vanha <h1>-tunniste
-st.markdown("# **UUDEN MARKAN (SMK) VIRALLINEN KURSSI-INDEKSI**")
-st.write("Yleisradioverkko / Suomen Valuuttarekisteri — Sivu perustettu 1997 — Päivitetty reaaliajassa")
+# 5. Sivun pääotsikko
+st.markdown("# **HOPEAAN SIDOTUN SUOMEN MARKAN KURSSIINDEKSI**")
+# 3. & 4. Perustamisvuosi ja dynaaminen kellonaika
+st.write(f"Suomen Valuuttarekisteri — Sivu perustettu 2026 — Päivitetty {nykyinen_aika}")
 st.write("---")
 
 try:
@@ -33,63 +38,82 @@ try:
     
     kurssit_usd_suhteessa = data["rates"]
     
-    # Valuuttamuunnokset dollarista
+    # 2. Lasketaan valuuttojen arvot YHDEN YKSIKÖN arvona Yhdysvaltain dollareissa (USD)
+    usd_in_usd = 1.0000
     eur_in_usd = 1 / kurssit_usd_suhteessa["EUR"]
     gbp_in_usd = 1 / kurssit_usd_suhteessa["GBP"]
     cny_in_usd = 1 / kurssit_usd_suhteessa["CNY"]
     rub_in_usd = 1 / kurssit_usd_suhteessa["RUB"]
     jpy_in_usd = 1 / kurssit_usd_suhteessa["JPY"]
     
-    # Hopean unssihinta globaaleilla markkinoilla (viite vuoden 2026 tasoon)
+    # Hopean hinta ja SMK arvo dollareissa (1 SMK = 0.5g hopeaa)
     hopea_unssi_usd = 30.50
     hopea_gramma_usd = hopea_unssi_usd / 31.1035
-    smk_usd = hopea_gramma_usd * 0.5
+    smk_in_usd = hopea_gramma_usd * 0.5
     
-    # SMK-arvot eri valuutoissa
-    smk_eur = smk_usd / eur_in_usd
-    smk_gbp = smk_usd / gbp_in_usd
-    smk_cny = smk_usd / cny_in_usd
-    smk_rub = smk_usd / rub_in_usd
-    smk_jpy = smk_usd / jpy_in_usd
+    # Lasketaan muunninta varten SMK:n suhde euroon
+    smk_eur = smk_in_usd / eur_in_usd
 
-    # --- VIRALLISET KURSSINOTEERAUKSEN TAULUKKOMUODOSSA ---
-    st.markdown("### **VIRALLISET KURSSINOTEERAUKSET**")
-    st.write("Valuuttakurssit haettu suoraan keskustietokoneelta. 1 SMK = kiinteästi 0,5g hopeaa.")
+    # --- 6. HIENOMPI HTML-TAULUKKO 90-LUVUN TYYLIIN ---
+    st.markdown("### **VIRALLISET KURSSINOTEERAUKSET (USD)**")
+    st.write("Valuuttaindeksi mitattuna Yhdysvaltain dollareina (USD). Viitestandardi: 1 SMK = 0,5g hopeaa.")
     
-    # Tehdään perinteinen HTML-henkinen tekstitaulukko
-    st.text(f"""
-------------------------------------------------------------
- VALUUTTAYKSIKKÖ          | NIMELLISARVO (1 SMK)
-------------------------------------------------------------
- Euro (EUR)               | {smk_eur:.4f}
- US-Dollari (USD)         | {smk_usd:.4f}
- Iso-Britannian Punta     | {smk_gbp:.4f}
- Kiinan Yuan (CNY)        | {smk_cny:.4f}
- Venäjän Rupla (RUB)      | {smk_rub:.4f}
- Japanin Jeni (JPY)       | {smk_jpy:.4f}
-------------------------------------------------------------
- Viitekurssi: 1 EUR       | {(1 / smk_eur):.4f} SMK
-------------------------------------------------------------
-    """)
+    # Luodaan perinteinen, siisti HTML-taulukko paksulla reunuksella ja harmaalla otsikolla
+    html_taulukko = f"""
+    <table border="3" cellpadding="5" cellspacing="0" style="font-family: monospace; width: 100%; max-width: 600px; border-color: #808080;">
+        <tr bgcolor="#d3d3d3">
+            <th align="left">VALUUTTAYKSIKKÖ (1 kpl)</th>
+            <th align="right">ARVO (USD)</th>
+        </tr>
+        <tr>
+            <td><b>Suomen Markka (SMK)</b></td>
+            <td align="right"><b>{smk_in_usd:.4f} USD</b></td>
+        </tr>
+        <tr>
+            <td>Euro (EUR)</td>
+            <td align="right">{eur_in_usd:.4f} USD</td>
+        </tr>
+        <tr>
+            <td>US-Dollari (USD)</td>
+            <td align="right">{usd_in_usd:.4f} USD</td>
+        </tr>
+        <tr>
+            <td>Iso-Britannian Punta (GBP)</td>
+            <td align="right">{gbp_in_usd:.4f} USD</td>
+        </tr>
+        <tr>
+            <td>Kiinan Yuan (CNY)</td>
+            <td align="right">{cny_in_usd:.4f} USD</td>
+        </tr>
+        <tr>
+            <td>Venäjän Rupla (RUB)</td>
+            <td align="right">{rub_in_usd:.4f} USD</td>
+        </tr>
+        <tr>
+            <td>Japanin Jeni (JPY)</td>
+            <td align="right">{jpy_in_usd:.4f} USD</td>
+        </tr>
+    </table>
+    """
+    # Ajetaan aito HTML-koodi Streamlitiin
+    st.markdown(html_taulukko, unsafe_allow_html=True)
 
     st.write("---")
 
     # --- VALUUTTAMUUNNIN OSION ---
-    st.markdown("### **VALUUTTAMUUNNIN**")
-    st.write("Syötä haluamasi Uusien markkojen (SMK) määrä laskemista varten:")
+    st.markdown("### **VALUUTTAMUUNNIN (SMK -> EUR)**")
+    st.write("Laske haluamasi Uusien markkojen määrä euroina voimassa olevan kurssin mukaan:")
     
-    # Käyttäjän syöte
-    markat = st.number_input("SMK-MÄÄRÄ:", min_value=1, value=100, step=1)
+    markat = st.number_input("Syota SMK-maara:", min_value=1, value=100, step=1)
     euroina = markat * smk_eur
     
-    # Tulos esitettynä karuna päätetekstinä
-    st.text(f" HUOMIO: {markat} SMK on tällä hetkellä arvoltaan {euroina:.2f} EUR.")
+    # Muunnintulos siistissä 90-luvun tekstilaatikossa
+    st.text(f" HUOMIO: {markat} SMK on talla hetkella arvoltaan {euroina:.2f} EUR.")
 
     st.write("---")
     
-    # Alatunnisteen linkit kuten Ylen sivun alalaidassa
     st.write("[Ohjeita sivulla liikkujille] [Sisällysluettelo] [Tekstiversio]")
-    st.caption("Powered by Silicon Graphics Computer Systems & Streamlit Engine. All rights reserved 1997-2026.")
+    st.caption("Powered by Silicon Graphics Computer Systems & Streamlit Engine. All rights reserved 2026.")
 
 except Exception as e:
     st.write("**VIRHE: Järjestelmä ei saanut yhteyttä valuuttatietokoneeseen.**")
