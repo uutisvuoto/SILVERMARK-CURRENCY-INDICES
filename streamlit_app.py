@@ -4,25 +4,21 @@ import urllib.request
 import json
 from datetime import datetime, timedelta
 
-# Sivun asetukset: layout="wide" sallii vapaan leveyden
+# Sivun asetukset: wide-näkymä
 st.set_page_config(page_title="HOPEAAN SIDOTUN SUOMEN MARKAN KURSSI-INDEKSI", layout="wide")
 
-# CSS: Musta tausta, mutta ei enää 4:3 rajausta
+# CSS-tyylittely
 st.markdown("""
     <style>
         .stApp { background-color: #000000; }
-        h1, h2, h3, p, span, label {
-            color: #FFFFFF !important;
-            font-family: 'Courier New', monospace !important;
-        }
+        h1, h2, h3, p, span, label { color: #FFFFFF !important; font-family: 'Courier New', monospace !important; }
         hr { border-color: #333333 !important; }
+        .stCheckbox label { color: #FF0000 !important; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
-# Aika
+# Aika ja Logo
 nykyinen_aika = datetime.now().strftime("%H:%M:%S")
-
-# Logo
 st.code("""
 ███████╗███╗   ███╗██╗  ██╗
 ██╔════╝████╗ ████║██║ ██╔╝
@@ -30,11 +26,14 @@ st.code("""
 ╚════██║██║╚██╔╝██║██╔═██╗ 
 ███████║██║ ╚═╝ ██║██║  ██╗
 ╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝
-  * SUOMEN VALUUTTAREKISTERI PÖRSSIPÄÄTE v4.2 *
+  * SUOMEN VALUUTTAREKISTERI PÖRSSIPÄÄTE v4.3 *
 """, language="text")
 
 st.markdown("# **HOPEAAN SIDOTUN SUOMEN MARKAN KURSSI-INDEKSI**")
 st.write(f"Päivitetty {nykyinen_aika}")
+
+# Kriisikytkin
+sotatila = st.checkbox("AKTIVOI SOTATILA-SIMULAATIO (DEFCON 1)")
 st.write("---")
 
 try:
@@ -45,43 +44,42 @@ try:
     data_v = json.loads(vastaus_v.read())
     rates = data_v["rates"]
     
-    hopea_unssi_usd = 1.0 / float(rates["XAG"]) if "XAG" in rates and rates["XAG"] > 0 else 30.75
-    smk_arvo = (hopea_unssi_usd / 31.1035) * 0.5
+    hopea_usd = (1.0 / float(rates["XAG"]) * 6.0) if sotatila else (1.0 / float(rates["XAG"]))
+    smk_arvo = (hopea_usd / 31.1035) * 0.5
     
     # Valuuttalista
     valuutat = [
         {"lyhenne": "SMK", "arvo": smk_arvo},
-        {"lyhenne": "GBP", "arvo": 1.0/rates["GBP"]},
-        {"lyhenne": "EUR", "arvo": 1.0/rates["EUR"]},
+        {"lyhenne": "GBP", "arvo": (1.0/rates["GBP"])*(0.7 if sotatila else 1)},
+        {"lyhenne": "EUR", "arvo": (1.0/rates["EUR"])*(0.2 if sotatila else 1)},
         {"lyhenne": "USD", "arvo": 1.0000},
-        {"lyhenne": "CNY", "arvo": 1.0/rates["CNY"]},
-        {"lyhenne": "JPY", "arvo": 1.0/rates["JPY"]},
-        {"lyhenne": "CHF", "arvo": 1.0/rates["CHF"]}
+        {"lyhenne": "RUB", "arvo": (1.0/rates["RUB"])*(0.05 if sotatila else 1)}
     ]
     valuutat.sort(key=lambda x: x["arvo"], reverse=True)
 
-    # Kolme saraketta: Taulukko, Käyrä, Ennuste
+    # Sarakkeet
     col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown("### **P331 KURSSIT**")
-        html_rows = "".join([f'<tr><td style="color:#FFF; width:60px;">{i:02d}</td><td style="color:{"#FFFF00" if v["lyhenne"]=="SMK" else "#00FF00"}">{v["lyhenne"]}</td><td align="right" style="color:#00FFFF;">{v["arvo"]:.4f}</td></tr>' for i, v in enumerate(valuutat, start=1)])
+        html_rows = "".join([f'<tr><td style="color:#FFF;">{i:02d}</td><td style="color:{"#FFFF00" if v["lyhenne"]=="SMK" else "#00FF00"}">{v["lyhenne"]}</td><td align="right" style="color:#00FFFF;">{v["arvo"]:.4f}</td></tr>' for i, v in enumerate(valuutat, start=1)])
         components.html(f'<div style="background:#000; border:2px solid #0000FF; padding:10px;"><table style="width:100%; font-family:monospace;">{html_rows}</table></div>', height=300)
 
     with col2:
         st.markdown("### **P332 HISTORIA**")
-        historia = [smk_arvo * 0.98, smk_arvo * 0.99, smk_arvo * 1.01, smk_arvo * 0.99, smk_arvo]
-        graph = "".join(['<span style="color:#00FF00;">*</span>' if abs(h - smk_arvo) < 0.05 else '<span style="color:#333;">.</span>' for h in historia])
-        components.html(f'<div style="background:#000; border:2px solid #0000FF; padding:10px; font-family:monospace; color:#FFF;">Päivät: 1  2  3  4  5<br>Käyrä: {graph}</div>', height=150)
+        graph = '<span style="color:#00FF00;">*</span>' * 5
+        components.html(f'<div style="background:#000; border:2px solid #0000FF; padding:10px; font-family:monospace; color:#FFF;">Käyrä:<br>{graph}</div>', height=150)
 
     with col3:
         st.markdown("### **P333 ENNUSTE**")
-        muutos = (historia[-1] - historia[0]) / len(historia)
-        ennuste = historia[-1] + muutos
-        tunnelma = "HÄRÄKÄS 🐂" if muutos >= 0 else "KARHUKÄS 🐻"
-        vari = "#00FF00" if muutos >= 0 else "#FF0000"
-        ennuste_html = f'<div style="background:#000; border:2px solid #00FFFF; padding:15px; font-family:monospace; color:#FFF;">NYKYINEN: <span style="color:{vari};">{tunnelma}</span><br>ENNUSTE: <span style="color:#00FFFF;">{ennuste:.4f} USD</span></div>'
-        components.html(ennuste_html, height=180)
+        vari = "#FF0000" if sotatila else "#00FF00"
+        ennuste_html = f'<div style="background:#000; border:2px solid #00FFFF; padding:15px; font-family:monospace; color:#FFF;">TRENDI: <span style="color:{vari};">{"KARHUKÄS" if sotatila else "HÄRÄKÄS"}</span><br>ENNUSTE: <span style="color:#00FFFF;">{(smk_arvo*1.05):.4f} USD</span></div>'
+        components.html(ennuste_html, height=150)
+
+    # Laskuri
+    st.write("---")
+    markat = st.number_input("SMK-MÄÄRÄ:", value=100)
+    st.code(f">>> {markat} SMK = {(markat * smk_arvo):.2f} USD", language="text")
 
 except Exception as e:
     st.error(f"JÄRJESTELMÄVIRHE: {e}")
