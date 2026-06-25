@@ -27,21 +27,25 @@ st.write(f"Suomen Valuuttarekisteri — Sivu perustettu 2026 — Päivitetty {ny
 st.write("---")
 
 try:
-    # 1. Haetaan reaaliaikaiset valuuttakurssit
+    # Haetaan reaaliaikaiset valuuttakurssit ja hyödykkeet samasta varmasta rajapinnasta
     url_v = "https://open.er-api.com/v6/latest/USD"
     req_v = urllib.request.Request(url_v, headers={'User-Agent': 'Mozilla/5.0'})
     vastaus_v = urllib.request.urlopen(req_v)
     data_v = json.loads(vastaus_v.read())
     rates = data_v["rates"]
     
-    # 2. Hopean hinnan haku (kiinteä fallback)
-    hopea_unssi_usd = 30.75
+    # Haetaan hopean (XAG) unssihinta suoraan suhteessa dollariin
+    # 1 unssi USD = 1 / rates["XAG"]
+    if "XAG" in rates and rates["XAG"] > 0:
+        hopea_unssi_usd = 1.0 / float(rates["XAG"])
+    else:
+        hopea_unssi_usd = 30.75 # Luotettava varajärjestelmä
 
-    # Lasketaan 1 SMK arvo (1 SMK = 0.5g hopeaa)
+    # Lasketaan 1 SMK arvo (1 SMK = 0.5g hopeaa, unssi = 31.1035g)
     hopea_gramma_usd = hopea_unssi_usd / 31.1035
     smk_arvo = hopea_gramma_usd * 0.5
     
-    # Valuuttojen arvot dollareina (Lasketaan paljonko 1 yksikkö on USD)
+    # Valuuttojen arvot dollareina (Paljonko 1 yksikkö on USD)
     usd_arvo = 1.0000
     eur_arvo = 1.0 / float(rates["EUR"])
     gbp_arvo = 1.0 / float(rates["GBP"])
@@ -81,17 +85,15 @@ try:
     with col_taulukko:
         st.markdown("### **VIRALLISET NOTEERAUKSET (USD)**")
         
-        # Aloitetaan puhtaan HTML-taulukon rakentaminen
         html_rows = ""
         for i, v in enumerate(valuutat, start=1):
-            
             # Määritetään väri dynaamisesti suhteessa dollariin
             if v["arvo"] >= 1.0000:
                 vari_koodi = "#008000" # Vihreä
             else:
                 vari_koodi = "#FF0000" # Punainen
 
-            # Jos kyseessä on SMK, lisätään lihavointi ja kevyt taustaväri riville
+            # Muotoillaan SMK ja muut rivit erikseen
             if v["lyhenne"] == "SMK":
                 väri_tyyli = f'style="color: {vari_koodi}; font-weight: bold;"'
                 nimi_str = f"<b>{v['lyhenne']}</b>"
@@ -132,7 +134,6 @@ try:
             index=[v["lyhenne"] for v in valuutat],
             columns=["USD-Arvo"]
         )
-        # Piirretään laajennettu pylväsdiagrammi
         st.bar_chart(chart_data)
 
     st.write("---")
@@ -153,4 +154,3 @@ try:
 
 except Exception as e:
     st.error(f"JÄRJESTELMÄVIRHE: Tietokoneeseen ei saatu yhteyttä. Syy: {e}")
-    
