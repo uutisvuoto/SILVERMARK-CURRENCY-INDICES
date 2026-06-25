@@ -81,7 +81,8 @@ try:
     col_taulukko, col_kaavio = st.columns([1, 1])
 
     with col_taulukko:
-        st.markdown("### **PÖRSSIPÄÄTE / TEKSTI-TV SIVU 331**")
+        # PÄIVITETTY OTSIKKO
+        st.markdown("### **VALUUTTAPÖRSSI**")
         
         html_rows = ""
         for i, v in enumerate(valuutat, start=1):
@@ -110,7 +111,7 @@ try:
         teksti_tv_laatikko = f"""
         <div style="background-color: #000000; padding: 15px; border: 4px solid #0000FF; font-family: 'Courier New', monospace; min-height: 400px;">
             <div style="color: #FFFF00; font-weight: bold; font-size: 18px; margin-bottom: 10px; border-bottom: 2px dashed #FFFF00; padding-bottom: 5px;">
-                P331  VALUUTTAKURSSIT (USD)
+                VALUUTTAPÖRSSI (USD-VASTINEET)
             </div>
             <table cellpadding="4" cellspacing="0" style="width: 100%; font-size: 16px; font-family: monospace;">
                 <tr style="color: #FFFF00; font-weight: bold;">
@@ -125,11 +126,11 @@ try:
             </div>
         </div>
         """
-        # Komponentti upottaa HTML:n eristetysti, jolloin se toimii varmasti
         components.html(teksti_tv_laatikko, height=450)
 
     with col_kaavio:
-        st.markdown("### **PÖRSSIPÄÄTE / TEKSTI-TV SIVU 332**")
+        # PÄIVITETTY OTSIKKO
+        st.markdown("### **VALUUTTADIAGRAMMI**")
         
         kallein_arvo = max([v["arvo"] for v in valuutat]) if valuutat else 1.0
         
@@ -160,7 +161,7 @@ try:
         teksti_tv_kaavio = f"""
         <div style="background-color: #000000; padding: 15px; border: 4px solid #0000FF; font-family: 'Courier New', monospace; min-height: 400px;">
             <div style="color: #FFFF00; font-weight: bold; font-size: 18px; margin-bottom: 10px; border-bottom: 2px dashed #FFFF00; padding-bottom: 5px;">
-                P332  DIAGRAMMI-VERTAILU
+                VALUUTTADIAGRAMMI (VERTAILU)
             </div>
             <table cellpadding="4" cellspacing="0" style="width: 100%; font-size: 15px; font-family: monospace;">
                 <tr style="color: #FFFF00; font-weight: bold;">
